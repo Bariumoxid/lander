@@ -2,7 +2,7 @@
 # %matplotlib inline
 import numpy as np
 import matplotlib.pyplot as plt
-
+import time
 
 # ----------------------------------------------------------------
 #Result:
@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 #In comparison, the Euler method has very significant error acculation when dt is larger than 0.01, the critical value
 #The result from verlet method is relatively reliable before dt is larger than 1.1, the critical value. The result becomes absolutely non sense when dt is larger than 2
 
+start=time.perf_counter()
 # mass, spring constant, initial position and velocity
 m = 1
 k = 1
@@ -18,8 +19,7 @@ v = 1
 
 # simulation time, timestep and time
 t_max = 100
-#dt = 0.1
-dt=1.9
+dt=0.1
 t_array = np.arange(0, t_max, dt)
 
 #The analytical solution
@@ -49,6 +49,9 @@ for t in t_array:
 x_array = np.array(x_list)
 v_array = np.array(v_list)
 
+end=time.perf_counter()
+print(end-start)
+
 # plot the position-time graph
 plt.figure(1)
 plt.clf()
@@ -64,6 +67,7 @@ plt.show()
 
 
 #Verlet Algorithm
+start=time.perf_counter()
 m = 1
 k = 1
 x_2 = 0 # past two, the initial position
@@ -95,7 +99,8 @@ for t in t_array[2:]:
 
 x_array_2 = np.array(x_list_2)
 v_array_2 = np.array(v_list_2)
-
+end=time.perf_counter()
+print(end-start)
 plt.figure(1)
 plt.clf()
 plt.xlabel('time (s)')
