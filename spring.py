@@ -62,7 +62,7 @@ plt.plot(t_array, v_array, label='v (m/s)')
 plt.plot(z, f, label='analytical x (m)')
 plt.plot(z, g,label='analytical v (m/s)')
 plt.legend()
-plt.show()
+#plt.show()
 
 
 
@@ -110,7 +110,7 @@ plt.plot(z, g,label='analytical v (m/s)')
 plt.plot(t_array, x_array_2, label='x (m)')
 plt.plot(t_array, v_array_2, label='v (m/s)')
 plt.legend()
-plt.show()
+#plt.show()
 
 
 #------------------------
@@ -119,6 +119,9 @@ plt.show()
 x_array=np.array([],dtype=np.float64)
 r_list=[]
 v_list=[]
+
+radius=3.386*10**6 
+
 
 def modulus(array): #only applies for 3D
     r=np.sqrt(abs(array[0]**2+array[1]**2+array[2]**2)) 
@@ -133,17 +136,20 @@ def verlet(pos,vel,t_max,orbital=False):
     t_array = np.arange(0, t_max, dt)
     #r=np.sqrt(abs(pos[0]**2+pos[1]**2+pos[2]**2)) 
     r=modulus(pos)
-    a=force_const/(r**2) #in the direction (-x,-y,-z) /|r|
+    a=(force_const)/(r**2) #in the direction (-x,-y,-z) /|r|
     acceleration=np.array([a*pos[0]/(r),a*pos[1]/(r),a*pos[2]/(r)],dtype=np.float64)
 
     pos_1=pos + dt * vel
     vel_1=vel+dt*acceleration
-    radius=3.39*10**6 
     r_list.append((r-radius))
     r_list.append(modulus(pos_1)-radius)
     pos_list.append(pos)
     pos_list.append(pos_1)
     i=0
+
+    v_list = []
+    v_list.append(modulus(vel))
+    v_list.append(modulus(vel_1))
 
     for t in t_array[2:]:
         
@@ -153,19 +159,25 @@ def verlet(pos,vel,t_max,orbital=False):
         r=modulus(position)
         pos_list.append(position[0:-1])
         r_list.append(r-radius)
+
         velocity=(position-pos)/(2*dt)
+        v_list.append(modulus(velocity))
+
         pos=pos_1
         pos_1=position
+
         i+=1
         if r_list[-1]>=0:
             pass
         else:
             r_list=r_list[:-1]
             t_array=t_array[:i+1]
+            v_list=v_list[:-1]
             break
 
-    if orbital==False:
+    if orbital==False:#This plots v-t and r-t diagram
         r_array = np.array(r_list)
+        v_array=np.array(v_list)
         plt.figure(1)
         plt.clf()
         plt.xlabel('time (s)')
@@ -173,11 +185,14 @@ def verlet(pos,vel,t_max,orbital=False):
         plt.plot(t_array,r_array, label='x (m)')
         plt.legend()
         plt.show()
+        plt.plot(t_array,v_array,label='v (m/s)')
+        plt.show()
 
-    else:
+    else: #This plots in the trajectory plane
         x_axis=list(pos_list[i][0] for i in range(len(pos_list)))
         y_axis=list(pos_list[i][1] for i in range(len(pos_list)))
         plt.scatter(0,0)
+        plt.axis('equal')
         plt.plot(x_axis,y_axis)
         plt.show()
 
@@ -186,30 +201,37 @@ def verlet(pos,vel,t_max,orbital=False):
 force_const =-6.67*10**(-11)*6.42*10**(23)#-GM
 m=1
 
-#Test Case & Case 1
+#Test Cases
+# 
+# Case 1 Simply descent
 x=y=z=3690000 
 vx=vy=vz=0 #5030m/s is the excape speed from the surface
 position=np.array([x,y,z],dtype=np.float64)
 velocity=np.array([vx,vy,vz],dtype=np.float64)
 verlet(position,velocity,200000) 
 
-# Case 3
-x=y=3.5*10**6  #Apogee
-z=0
-
-#perigee
-#v_tangential=sqrt(GM/r) 
-#One example (-1,1,0)/sqrt(2)
-vx=np.sqrt((-force_const)/(3.39*10**6  * np.sqrt(6)))
-print(vx)
-vy=-np.sqrt((-force_const)/(3.39*10**6  *np.sqrt(6)))
-vz=0 #5030m/s is the excape speed from the surface
+#Case 2 Circular orbit 
+x=10000+radius
+y=z=0
+vx=vz=0
+vy=np.sqrt(x*3.713)
 position=np.array([x,y,z],dtype=np.float64)
 velocity=np.array([vx,vy,vz],dtype=np.float64)
-verlet(position,velocity,100000,orbital=False) 
+verlet(position,velocity,200000,orbital=True)
+
+
+# Case 3 Elipse 
+x=0
+y=-(radius+10000)
+z=0
+dt=0.1
+vx=4000
+vy=vz=0
+position=np.array([x,y,z],dtype=np.float64)
+velocity=np.array([vx,vy,vz],dtype=np.float64)
 verlet(position,velocity,100000,orbital=True) 
 
-# Case 4
+# Case 4 Hyperbolic
 x=y=z=3390000
 vx=1.22*np.sqrt((-force_const)/(3.39*10**6  * np.sqrt(6))) #5030m/s is the excape speed from the surface
 vy=-1.22*np.sqrt((-force_const)/(3.39*10**6  * np.sqrt(6)))
@@ -217,4 +239,16 @@ vz=0
 position=np.array([x,y,z],dtype=np.float64)
 velocity=np.array([vx,vy,vz],dtype=np.float64)
 verlet(position,velocity,100000,orbital=True)
+
+
+#Additional check Case 1
+x=0
+y=-(radius+10000)
+z=0
+dt=0.1
+vx=vy=vz=0
+position=np.array([x,y,z],dtype=np.float64)
+velocity=np.array([vx,vy,vz],dtype=np.float64)
+verlet(position,velocity,100000,orbital=False) #Result: 75s, 260m/s accurate enough consider that there's no drag
+
 
