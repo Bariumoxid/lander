@@ -13,7 +13,7 @@
 // ahg@eng.cam.ac.uk and gc121@eng.cam.ac.uk.
 
 #include "lander.h"
-
+#include <vector>
 void autopilot (void)
   // Autopilot to adjust the engine throttle, parachute and attitude control
 {
@@ -24,7 +24,22 @@ void numerical_dynamics (void)
   // This is the function that performs the numerical integration to update the
   // lander's pose. The time step is delta_t (global variable).
 {
-  // INSERT YOUR CODE HERE
+   double t_max = 100000;
+   vector3d acceleration;
+   vector3d drag;
+   vector3d gravity;
+   //while (simulation_time <= t_max and position*position>=MARS_RADIUS*MARS_RADIUS)
+   //{
+
+           drag = (-DRAG_COEF_LANDER * 3.14 * LANDER_SIZE * LANDER_SIZE * (velocity * velocity) * atmospheric_density(position)) * velocity.norm() / 2;
+           gravity = (-GRAVITY * MARS_MASS * (UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY) * position.norm()) / (position * position);
+           acceleration = (thrust_wrt_world() + drag + gravity) / (UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY);
+           position = position + delta_t * velocity;
+           velocity = velocity + delta_t * acceleration;
+           simulation_time += delta_t;
+           Sleep(0.1);
+              
+      // }
 
   // Here we can apply an autopilot to adjust the thrust, parachute and attitude
   if (autopilot_enabled) autopilot();
