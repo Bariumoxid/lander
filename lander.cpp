@@ -20,26 +20,57 @@ void autopilot (void)
   // INSERT YOUR CODE HERE
 }
 
+int i;
+vector3d previous_position_2;
+vector3d previous_position_1;
+
 void numerical_dynamics (void)
   // This is the function that performs the numerical integration to update the
   // lander's pose. The time step is delta_t (global variable).
+
 {
-   double t_max = 100000;
    vector3d acceleration;
    vector3d drag;
    vector3d gravity;
-   //while (simulation_time <= t_max and position*position>=MARS_RADIUS*MARS_RADIUS)
-   //{
 
-           drag = (-DRAG_COEF_LANDER * 3.14 * LANDER_SIZE * LANDER_SIZE * (velocity * velocity) * atmospheric_density(position)) * velocity.norm() / 2;
-           gravity = (-GRAVITY * MARS_MASS * (UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY) * position.norm()) / (position * position);
-           acceleration = (thrust_wrt_world() + drag + gravity) / (UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY);
-           position = position + delta_t * velocity;
-           velocity = velocity + delta_t * acceleration;
-           simulation_time += delta_t;
-           Sleep(0.1);
+   
+   
+   drag = (-DRAG_COEF_LANDER * 3.14 * LANDER_SIZE * LANDER_SIZE * (velocity * velocity) * atmospheric_density(position)) * velocity.norm() / 2;
+   gravity = (-GRAVITY * MARS_MASS * (UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY) * position.norm()) / (position * position);
+   acceleration = (thrust_wrt_world() + drag + gravity) / (UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY);
+
+   //Euler
+   //position = position + delta_t * velocity;
+   //velocity = velocity + delta_t * acceleration;
               
-      // }
+    //Test cases:
+    // 1.exactly 176.1m/s, 83.5s (1)
+    // 2. (4)
+    // 3. 330.05m/s, 361.6s (5)
+
+   //Verlet:
+   if (i == 0) {
+       previous_position_2 = position;
+       position = previous_position_2 + delta_t * velocity;
+       previous_position_1 = position;
+       velocity = velocity + delta_t * acceleration;
+       i += 1; //if set to i+=0, then it becomes the simple Euler method
+   }
+   else {
+       position = 2 * previous_position_1 - previous_position_2 + (delta_t * delta_t) * acceleration;
+       velocity = (previous_position_1 - previous_position_2) / delta_t;
+       previous_position_2 = previous_position_1;
+       previous_position_1 = position;
+
+       cout << velocity << endl;
+       
+
+   //Test cases:
+    // 1.exactly 176.156m/s, 83.5s (1)
+    // 2. 
+    // 3. 328.279m/s,361.9s
+   }
+   
 
   // Here we can apply an autopilot to adjust the thrust, parachute and attitude
   if (autopilot_enabled) autopilot();
@@ -77,6 +108,7 @@ void initialize_simulation (void)
     position = vector3d(1.2*MARS_RADIUS, 0.0, 0.0);
     velocity = vector3d(0.0, -3247.087385863725, 0.0);
     orientation = vector3d(0.0, 90.0, 0.0);
+    i = 0;
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
     stabilized_attitude = false;
@@ -88,6 +120,7 @@ void initialize_simulation (void)
     position = vector3d(0.0, -(MARS_RADIUS + 10000.0), 0.0);
     velocity = vector3d(0.0, 0.0, 0.0);
     orientation = vector3d(0.0, 0.0, 90.0);
+    i = 0;
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
     stabilized_attitude = true;
@@ -99,6 +132,7 @@ void initialize_simulation (void)
     position = vector3d(0.0, 0.0, 1.2*MARS_RADIUS);
     velocity = vector3d(3500.0, 0.0, 0.0);
     orientation = vector3d(0.0, 0.0, 90.0);
+    i = 0;
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
     stabilized_attitude = false;
@@ -110,6 +144,7 @@ void initialize_simulation (void)
     position = vector3d(0.0, 0.0, MARS_RADIUS + LANDER_SIZE/2.0);
     velocity = vector3d(0.0, 0.0, 5027.0);
     orientation = vector3d(0.0, 0.0, 0.0);
+    i = 0;
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
     stabilized_attitude = false;
@@ -121,6 +156,7 @@ void initialize_simulation (void)
     position = vector3d(0.0, 0.0, MARS_RADIUS + 100000.0);
     velocity = vector3d(4000.0, 0.0, 0.0);
     orientation = vector3d(0.0, 90.0, 0.0);
+    i = 0;
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
     stabilized_attitude = false;
@@ -132,6 +168,7 @@ void initialize_simulation (void)
     position = vector3d(0.0, -(MARS_RADIUS + EXOSPHERE), 0.0);
     velocity = vector3d(0.0, 0.0, 0.0);
     orientation = vector3d(0.0, 0.0, 90.0);
+    i = 0;
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
     stabilized_attitude = true;
