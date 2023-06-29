@@ -14,10 +14,28 @@
 
 #include "lander.h"
 #include <vector>
+double P_out, error, Kh, Kp,delta;
+
+
 void autopilot (void)
   // Autopilot to adjust the engine throttle, parachute and attitude control
 {
-  // INSERT YOUR CODE HERE
+    Kp = 0.7;
+    Kh = 0.019;
+    delta = 0.6; //these constants works well for case 1, 3, 5 (all can be done even without parachute!),  case 4 can be done with parachute 
+    P_out = Kp * (-(0.5 + Kh * (sqrt((position * position))-MARS_RADIUS) + velocity * position.norm()));
+    if (P_out<=-delta) 
+    {
+        throttle = 0;
+    }
+    else if (P_out>=1-delta) 
+    {
+        throttle = 1;
+    }
+    else 
+    {
+        throttle = delta + P_out;
+    }
 }
 
 int i;
@@ -37,15 +55,22 @@ void numerical_dynamics (void)
    
    drag = (-DRAG_COEF_LANDER * 3.14 * LANDER_SIZE * LANDER_SIZE * (velocity * velocity) * atmospheric_density(position)) * velocity.norm() / 2;
    gravity = (-GRAVITY * MARS_MASS * (UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY) * position.norm()) / (position * position);
-   acceleration = (thrust_wrt_world() + drag + gravity) / (UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY);
+   
 
+   if ((parachute_status == DEPLOYED)) 
+   {
+       drag =drag+ ( - DRAG_COEF_CHUTE * 5 * 2 * LANDER_SIZE * LANDER_SIZE * (velocity * velocity) * atmospheric_density(position))* velocity.norm() / 2;
+  }
+   acceleration = (thrust_wrt_world() + drag + gravity) / (UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY);
+   
    //Euler
    //position = position + delta_t * velocity;
    //velocity = velocity + delta_t * acceleration;
-              
+   //cout << velocity << endl;
+
     //Test cases:
     // 1.exactly 176.1m/s, 83.5s (1)
-    // 2. (4)
+    // 2. Not Correct, performs like circular motion and does that land/crash on time. This is possibly due to the error accumulation and thus it might not be suitable to use here.
     // 3. 330.05m/s, 361.6s (5)
 
    //Verlet:
@@ -54,21 +79,20 @@ void numerical_dynamics (void)
        position = previous_position_2 + delta_t * velocity;
        previous_position_1 = position;
        velocity = velocity + delta_t * acceleration;
-       i += 1; //if set to i+=0, then it becomes the simple Euler method
-   }
+       i += 1; 
+  }
    else {
-       position = 2 * previous_position_1 - previous_position_2 + (delta_t * delta_t) * acceleration;
+      position = 2 * previous_position_1 - previous_position_2 + (delta_t * delta_t) * acceleration;
        velocity = (previous_position_1 - previous_position_2) / delta_t;
        previous_position_2 = previous_position_1;
        previous_position_1 = position;
-
-       cout << velocity << endl;
+   
        
 
    //Test cases:
     // 1.exactly 176.156m/s, 83.5s (1)
-    // 2. 
-    // 3. 328.279m/s,361.9s
+    // 2.197m/s, 42650s (4) Very obvious discrepancy from the given data, however still in the acceptable range(4)
+    // 3. 328.279m/s,361.9s (5)
    }
    
 
