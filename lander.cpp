@@ -14,16 +14,26 @@
 
 #include "lander.h"
 #include <vector>
+#include <fstream>
 double P_out, error, Kh, Kp,delta;
+vector<double> t_list, h_list, v_list;
 
 
 void autopilot (void)
   // Autopilot to adjust the engine throttle, parachute and attitude control
 {
     Kp = 0.7;
-    Kh = 0.019;
+    Kh = 0.019; //0.019
     delta = 0.6; //these constants works well for case 1, 3, 5 (all can be done even without parachute!),  case 4 can be done with parachute 
     P_out = Kp * (-(0.5 + Kh * (sqrt((position * position))-MARS_RADIUS) + velocity * position.norm()));
+
+
+    //From the python plotting, it is clear that the real velocity fits extremely well with the targeting velocity when Kh=0.019 
+    //For the v-h diagram:
+    // If the constant Kh is to high, eg 0.05, the real velocity cannot fit well with (catch up) the target velocity, thus leading to crashing
+    // If the constant Kh is to low, eg 0.01, the lander starts to decrease speed too early. Thus the lander will ends up no fuel before landing
+    
+
     if (P_out<=-delta) 
     {
         throttle = 0;
@@ -50,7 +60,7 @@ void numerical_dynamics (void)
    vector3d acceleration;
    vector3d drag;
    vector3d gravity;
-
+   
    
    
    drag = (-DRAG_COEF_LANDER * 3.14 * LANDER_SIZE * LANDER_SIZE * (velocity * velocity) * atmospheric_density(position)) * velocity.norm() / 2;
@@ -87,6 +97,8 @@ void numerical_dynamics (void)
        previous_position_2 = previous_position_1;
        previous_position_1 = position;
    
+
+       cout << simulation_time << ' ' << sqrt(position * position) - MARS_RADIUS << ' ' << velocity * position.norm() << endl;
        
 
    //Test cases:
@@ -213,3 +225,4 @@ void initialize_simulation (void)
 
   }
 }
+

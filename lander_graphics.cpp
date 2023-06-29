@@ -76,6 +76,8 @@
 
 #define DECLARE_GLOBAL_VARIABLES
 #include "lander.h"
+#include <vector>
+
 
 void invert (double m[], double mout[])
   // Inverts a 4x4 OpenGL rotation matrix
@@ -2155,4 +2157,6 @@ int main (int argc, char* argv[])
   microsecond_time(time_program_started);
 
   glutMainLoop();
+
+ 
 }
