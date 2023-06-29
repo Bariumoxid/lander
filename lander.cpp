@@ -98,7 +98,7 @@ void numerical_dynamics (void)
        previous_position_1 = position;
    
 
-       cout << simulation_time << ' ' << sqrt(position * position) - MARS_RADIUS << ' ' << velocity * position.norm() << endl;
+       //cout << simulation_time << ' ' << sqrt(position * position) - MARS_RADIUS << ' ' << velocity * position.norm() << endl;
        
 
    //Test cases:
